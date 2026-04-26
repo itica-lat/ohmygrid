@@ -82,6 +82,9 @@ export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatc
   const handleSlotMouseDown = useCallback(
     (col: number, row: number, e: React.MouseEvent) => {
       e.stopPropagation();
+      // Suppress native browser text/DOM selection so it doesn't race the drag gesture
+      e.preventDefault();
+      window.getSelection()?.removeAllRanges();
       if (isSlotOccupied(cells, col, row)) return;
       setDrag({ startCol: col, startRow: row, endCol: col, endRow: row });
     },
@@ -224,6 +227,8 @@ export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatc
                 gap,
                 pointerEvents: "none",
                 zIndex: 5,
+                // Disable text selection for the duration of a drag gesture
+                userSelect: drag ? "none" : undefined,
               }}
             >
               {Array.from({ length: rows }, (_, ri) =>
@@ -258,6 +263,7 @@ export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatc
                       onMouseDown={(e) => handleSlotMouseDown(col, row, e)}
                       onMouseEnter={() => handleSlotMouseEnter(col, row)}
                       onMouseLeave={() => setHoveredSlot(null)}
+                      onDragStart={(e) => e.preventDefault()}
                     />
                   );
                 }),
