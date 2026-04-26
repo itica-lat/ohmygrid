@@ -1,4 +1,4 @@
-# ohmygrid
+# OhMyGrid
 
 A visual **bento grid designer** built with React 19, TypeScript, and TailwindCSS v4.  
 Design, customize, and export production-ready bento layouts as React TSX or standalone HTML.
