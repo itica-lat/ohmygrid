@@ -10,6 +10,7 @@ import { FeatureCard } from "./cells/FeatureCard";
 import { TagCloud } from "./cells/TagCloud";
 import { CodeSnippet } from "./cells/CodeSnippet";
 import { BannerCell } from "./cells/BannerCell";
+import { useT } from "../lib/i18n";
 
 interface Props {
   cells: GridCell[];
@@ -75,6 +76,7 @@ function renderCellContent(cell: GridCell, logo?: string) {
 }
 
 export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatch }: Props) {
+  const t = useT();
   const { columns, rows, gap, padding } = gridConfig;
   const [drag, setDrag] = useState<DragState | null>(null);
   const [hoveredSlot, setHoveredSlot] = useState<{ col: number; row: number } | null>(null);
@@ -295,7 +297,7 @@ export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatc
                 fontFamily: brand.fontFamily,
               }}
             >
-              Drag on the grid to add a cell
+              {t("canvas.emptyHint")}
             </p>
           </div>
         )}

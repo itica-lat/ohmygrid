@@ -3,6 +3,7 @@ import type { GridMode, GridConfig, BrandTokens } from "../types";
 import type { Action } from "../state/reducer";
 import { TEMPLATES } from "../utils/templates";
 import { saveTemplate } from "../utils/localStorage";
+import { useT, useI18nStore } from "../lib/i18n";
 
 interface Props {
   mode: GridMode;
@@ -110,6 +111,9 @@ export function TopBar({
   onOpenTemplates,
   dispatch,
 }: Props) {
+  const t = useT();
+  const locale = useI18nStore((s) => s.locale);
+  const setLocale = useI18nStore((s) => s.setLocale);
   const { columns, rows, gap } = gridConfig;
   const [savingName, setSavingName] = useState("");
   const [showSaveInput, setShowSaveInput] = useState(false);
@@ -201,7 +205,7 @@ export function TopBar({
               color: mode === m ? "#fff" : "rgba(255,255,255,0.4)",
             }}
           >
-            {m === "free" ? "Free" : "Template"}
+            {m === "free" ? t("topbar.free") : t("topbar.template")}
           </button>
         ))}
       </div>
@@ -216,7 +220,7 @@ export function TopBar({
             if (e.target.value) handleTemplateApply(e.target.value);
           }}
         >
-          <option value="">Built-in templates…</option>
+          <option value="">{t("topbar.builtinTemplates")}</option>
           {TEMPLATES.map((t) => (
             <option key={t.id} value={t.id}>
               {t.name}
@@ -229,7 +233,7 @@ export function TopBar({
 
       {/* Grid dimension steppers */}
       <Stepper
-        label="Cols"
+        label={t("topbar.cols")}
         value={columns}
         min={1}
         max={12}
@@ -237,7 +241,7 @@ export function TopBar({
       />
       <Sep />
       <Stepper
-        label="Rows"
+        label={t("topbar.rows")}
         value={rows}
         min={1}
         max={12}
@@ -248,7 +252,7 @@ export function TopBar({
       {/* Gap slider */}
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <span style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", letterSpacing: "0.04em" }}>
-          Gap
+          {t("topbar.gap")}
         </span>
         <input
           type="range"
@@ -267,7 +271,9 @@ export function TopBar({
 
       {/* Cell count badge */}
       <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", flexShrink: 0 }}>
-        {cellCount} cell{cellCount !== 1 ? "s" : ""}
+        {cellCount === 1
+          ? t("topbar.cellCount", { count: cellCount })
+          : t("topbar.cellCount_plural", { count: cellCount })}
       </span>
 
       <Sep />
@@ -284,7 +290,7 @@ export function TopBar({
               if (e.key === "Enter") handleSaveTemplate();
               if (e.key === "Escape") setShowSaveInput(false);
             }}
-            placeholder="Template name…"
+            placeholder={t("topbar.templateNamePlaceholder")}
             className="input-base"
             style={{ width: 148, height: 28, padding: "0 8px", fontSize: 12 }}
           />
@@ -293,14 +299,14 @@ export function TopBar({
             style={{ height: 28, padding: "0 12px", fontSize: 12 }}
             onClick={handleSaveTemplate}
           >
-            Save
+            {t("topbar.save")}
           </button>
           <button
             className="btn-ghost"
             style={{ height: 28, padding: "0 10px", fontSize: 12 }}
             onClick={() => setShowSaveInput(false)}
           >
-            Cancel
+            {t("topbar.cancel")}
           </button>
         </div>
       ) : (
@@ -309,7 +315,7 @@ export function TopBar({
           style={{ height: 28, padding: "0 12px", fontSize: 12 }}
           onClick={() => setShowSaveInput(true)}
         >
-          Save Layout
+          {t("topbar.saveLayout")}
         </button>
       )}
 
@@ -319,7 +325,7 @@ export function TopBar({
         style={{ height: 28, padding: "0 12px", fontSize: 12 }}
         onClick={onOpenTemplates}
       >
-        Templates
+        {t("topbar.templates")}
       </button>
 
       {/* Import */}
@@ -328,7 +334,7 @@ export function TopBar({
         style={{ height: 28, padding: "0 12px", fontSize: 12 }}
         onClick={onOpenImport}
       >
-        Import
+        {t("topbar.import")}
       </button>
 
       <Sep />
@@ -339,14 +345,14 @@ export function TopBar({
         style={{ height: 28, padding: "0 10px", fontSize: 12 }}
         onClick={() => dispatch({ type: "RESET" })}
       >
-        Reset
+        {t("topbar.reset")}
       </button>
       <button
         className="btn-ghost"
         style={{ height: 28, padding: "0 10px", fontSize: 12 }}
         onClick={() => dispatch({ type: "LOAD_EXAMPLE" })}
       >
-        Example
+        {t("topbar.example")}
       </button>
 
       {/* Export */}
@@ -355,7 +361,17 @@ export function TopBar({
         style={{ height: 28, padding: "0 14px", fontSize: 12 }}
         onClick={() => dispatch({ type: "OPEN_EXPORT" })}
       >
-        Export
+        {t("topbar.export")}
+      </button>
+
+      {/* Language toggle */}
+      <button
+        className="btn-ghost"
+        style={{ height: 28, padding: "0 10px", fontSize: 12, minWidth: 32 }}
+        onClick={() => setLocale(locale === "en" ? "es" : "en")}
+        title={locale === "en" ? "Español" : "English"}
+      >
+        {locale === "en" ? "ES" : "EN"}
       </button>
     </div>
   );

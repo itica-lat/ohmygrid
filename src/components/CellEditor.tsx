@@ -19,6 +19,7 @@ import type {
 } from "../types";
 import type { Action } from "../state/reducer";
 import { createDefaultContent } from "../state/initialState";
+import { useT } from "../lib/i18n";
 
 interface Props {
   cell: GridCell | null;
@@ -29,14 +30,24 @@ interface Props {
   dispatch: React.Dispatch<Action>;
 }
 
-const CONTENT_TYPE_LABELS: Record<CellContentType, string> = {
-  text: "Text Block",
-  image: "Image",
-  stat: "Stat Card",
-  feature: "Feature Card",
-  tagcloud: "Tag Cloud",
-  code: "Code Snippet",
-  banner: "Banner / Logo",
+const CONTENT_TYPES: CellContentType[] = [
+  "text",
+  "image",
+  "stat",
+  "feature",
+  "tagcloud",
+  "code",
+  "banner",
+];
+
+const CONTENT_TYPE_TO_KEY: Record<CellContentType, string> = {
+  text: "editor.textBlock",
+  image: "editor.image",
+  stat: "editor.statCard",
+  feature: "editor.featureCard",
+  tagcloud: "editor.tagCloud",
+  code: "editor.codeSnippet",
+  banner: "editor.bannerLogo",
 };
 
 // ─── Collision helpers ────────────────────────────────────────────────────────
@@ -79,6 +90,7 @@ function Divider() {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: Props) {
+  const t = useT();
   if (!cell) {
     return (
       <div
@@ -97,9 +109,7 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
       >
         <span style={{ fontSize: 32 }}>✦</span>
         <p style={{ margin: 0, fontSize: 13, textAlign: "center", lineHeight: 1.5 }}>
-          {mode === "free"
-            ? "Drag on the canvas to create a cell, then click to select it."
-            : "Click a cell on the canvas to edit it."}
+          {mode === "free" ? t("editor.emptyFree") : t("editor.emptyTemplate")}
         </p>
       </div>
     );
@@ -134,11 +144,11 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
       rowSpan: partial.rowSpan ?? cell.rowSpan,
     };
     if (next.colStart + next.colSpan - 1 > columns || next.rowStart + next.rowSpan - 1 > rows) {
-      setGeoError("Cell extends beyond the grid bounds.");
+      setGeoError(t("editor.geoErrorBounds"));
       return;
     }
     if (wouldOverlap(cells, cell.id, next)) {
-      setGeoError("This position overlaps another cell.");
+      setGeoError(t("editor.geoErrorOverlap"));
       return;
     }
     setGeoError(null);
@@ -169,7 +179,7 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
         }}
       >
         <p className="section-label" style={{ marginBottom: 0 }}>
-          Cell Editor
+          {t("editor.cellEditor")}
         </p>
         <button
           onClick={() => dispatch({ type: "DELETE_CELL", id: cell.id })}
@@ -183,13 +193,13 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
             cursor: "pointer",
           }}
         >
-          Delete
+          {t("editor.delete")}
         </button>
       </div>
 
       {/* Position & Size */}
       <section>
-        <p className="section-label">Position &amp; Size</p>
+        <p className="section-label">{t("editor.positionAndSize")}</p>
 
         {geoError && (
           <div
@@ -209,7 +219,7 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
         )}
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <Row label="Col Start">
+          <Row label={t("editor.colStart")}>
             <input
               type="number"
               min={1}
@@ -221,7 +231,7 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
               className="input-base"
             />
           </Row>
-          <Row label="Row Start">
+          <Row label={t("editor.rowStart")}>
             <input
               type="number"
               min={1}
@@ -233,7 +243,7 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
               className="input-base"
             />
           </Row>
-          <Row label="Col Span">
+          <Row label={t("editor.colSpan")}>
             <input
               type="number"
               min={1}
@@ -245,7 +255,7 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
               className="input-base"
             />
           </Row>
-          <Row label="Row Span">
+          <Row label={t("editor.rowSpan")}>
             <input
               type="number"
               min={1}
@@ -263,28 +273,28 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
         <div style={{ display: "flex", justifyContent: "center", gap: 4, marginTop: 6 }}>
           <button
             className="btn-icon"
-            title="Move up"
+            title={t("editor.moveUp")}
             onClick={() => tryUpdateGeo({ rowStart: Math.max(1, cell.rowStart - 1) })}
           >
             ↑
           </button>
           <button
             className="btn-icon"
-            title="Move down"
+            title={t("editor.moveDown")}
             onClick={() => tryUpdateGeo({ rowStart: Math.min(rows, cell.rowStart + 1) })}
           >
             ↓
           </button>
           <button
             className="btn-icon"
-            title="Move left"
+            title={t("editor.moveLeft")}
             onClick={() => tryUpdateGeo({ colStart: Math.max(1, cell.colStart - 1) })}
           >
             ←
           </button>
           <button
             className="btn-icon"
-            title="Move right"
+            title={t("editor.moveRight")}
             onClick={() => tryUpdateGeo({ colStart: Math.min(columns, cell.colStart + 1) })}
           >
             →
@@ -296,29 +306,29 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
 
       {/* Cell style overrides */}
       <section>
-        <p className="section-label">Cell Style</p>
-        <Row label="Background">
+        <p className="section-label">{t("editor.cellStyle")}</p>
+        <Row label={t("editor.background")}>
           <input
             type="text"
-            placeholder="e.g. rgba(99,102,241,0.1)"
+            placeholder={t("editor.backgroundPlaceholder")}
             value={cell.customBackground ?? ""}
             onChange={(e) => update({ customBackground: e.target.value || undefined })}
             className="input-base"
           />
         </Row>
-        <Row label="Border Radius">
+        <Row label={t("editor.borderRadius")}>
           <input
             type="text"
-            placeholder="e.g. 24px"
+            placeholder={t("editor.borderRadiusPlaceholder")}
             value={cell.customBorderRadius ?? ""}
             onChange={(e) => update({ customBorderRadius: e.target.value || undefined })}
             className="input-base"
           />
         </Row>
-        <Row label="Padding">
+        <Row label={t("editor.padding")}>
           <input
             type="text"
-            placeholder="e.g. 24px"
+            placeholder={t("editor.paddingPlaceholder")}
             value={cell.customPadding ?? ""}
             onChange={(e) => update({ customPadding: e.target.value || undefined })}
             className="input-base"
@@ -330,31 +340,29 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
 
       {/* Content type */}
       <section>
-        <p className="section-label">Content Type</p>
+        <p className="section-label">{t("editor.contentType")}</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5 }}>
-          {(Object.entries(CONTENT_TYPE_LABELS) as [CellContentType, string][]).map(
-            ([type, label]) => (
-              <button
-                key={type}
-                onClick={() => handleContentTypeChange(type)}
-                style={{
-                  padding: "7px 6px",
-                  borderRadius: 8,
-                  border: `1px solid ${content.type === type ? "rgba(99,102,241,0.7)" : "rgba(255,255,255,0.08)"}`,
-                  background:
-                    content.type === type ? "rgba(99,102,241,0.14)" : "rgba(255,255,255,0.03)",
-                  color: content.type === type ? "#f8fafc" : "rgba(255,255,255,0.45)",
-                  fontSize: 11,
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  transition: "all 0.12s ease",
-                }}
-              >
-                {label}
-              </button>
-            ),
-          )}
+          {CONTENT_TYPES.map((type) => (
+            <button
+              key={type}
+              onClick={() => handleContentTypeChange(type)}
+              style={{
+                padding: "7px 6px",
+                borderRadius: 8,
+                border: `1px solid ${content.type === type ? "rgba(99,102,241,0.7)" : "rgba(255,255,255,0.08)"}`,
+                background:
+                  content.type === type ? "rgba(99,102,241,0.14)" : "rgba(255,255,255,0.03)",
+                color: content.type === type ? "#f8fafc" : "rgba(255,255,255,0.45)",
+                fontSize: 11,
+                fontWeight: 500,
+                cursor: "pointer",
+                textAlign: "left",
+                transition: "all 0.12s ease",
+              }}
+            >
+              {t(CONTENT_TYPE_TO_KEY[type] as any)}
+            </button>
+          ))}
         </div>
       </section>
 
@@ -362,7 +370,7 @@ export function CellEditor({ cell, cells, gridConfig, mode, brand, dispatch }: P
 
       {/* Content editor */}
       <section>
-        <p className="section-label">Content</p>
+        <p className="section-label">{t("editor.content")}</p>
         {content.type === "text" && (
           <TextEditor content={content} onChange={(c) => updateContent(c)} />
         )}
@@ -398,9 +406,10 @@ function TextEditor({
   content: TextContent;
   onChange: (c: TextContent) => void;
 }) {
+  const t = useT();
   return (
     <>
-      <Row label="Heading">
+      <Row label={t("editor.heading")}>
         <input
           type="text"
           value={content.heading}
@@ -408,7 +417,7 @@ function TextEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Subheading">
+      <Row label={t("editor.subheading")}>
         <input
           type="text"
           value={content.subheading}
@@ -416,7 +425,7 @@ function TextEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Body">
+      <Row label={t("editor.body")}>
         <textarea
           value={content.body}
           onChange={(e) => onChange({ ...content, body: e.target.value })}
@@ -425,7 +434,7 @@ function TextEditor({
           style={{ resize: "vertical" }}
         />
       </Row>
-      <Row label="Heading Size">
+      <Row label={t("editor.headingSize")}>
         <select
           className="input-base"
           value={content.headingSize}
@@ -438,7 +447,7 @@ function TextEditor({
           ))}
         </select>
       </Row>
-      <Row label="Alignment">
+      <Row label={t("editor.alignment")}>
         <div style={{ display: "flex", gap: 4 }}>
           {(["left", "center", "right"] as TextAlign[]).map((a) => (
             <button
@@ -471,6 +480,7 @@ function ImageEditor({
   content: ImageContent;
   onChange: (c: ImageContent) => void;
 }) {
+  const t = useT();
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -482,25 +492,25 @@ function ImageEditor({
   };
   return (
     <>
-      <Row label="Image URL">
+      <Row label={t("editor.imageUrl")}>
         <input
           type="text"
           value={content.src}
           onChange={(e) => onChange({ ...content, src: e.target.value })}
           className="input-base"
-          placeholder="https://..."
+          placeholder={t("editor.imageUrlPlaceholder")}
         />
       </Row>
-      <Row label="Or upload">
+      <Row label={t("editor.orUpload")}>
         <label
           className="btn-ghost"
           style={{ cursor: "pointer", display: "inline-block", fontSize: 12 }}
         >
-          Choose File
+          {t("editor.chooseFile")}
           <input type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
         </label>
       </Row>
-      <Row label="Alt Text">
+      <Row label={t("editor.altText")}>
         <input
           type="text"
           value={content.alt}
@@ -508,7 +518,7 @@ function ImageEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Object Fit">
+      <Row label={t("editor.objectFit")}>
         <select
           className="input-base"
           value={content.fit}
@@ -521,7 +531,7 @@ function ImageEditor({
           ))}
         </select>
       </Row>
-      <Row label="Position">
+      <Row label={t("editor.position")}>
         <select
           className="input-base"
           value={content.position}
@@ -547,9 +557,10 @@ function StatEditor({
   content: StatContent;
   onChange: (c: StatContent) => void;
 }) {
+  const t = useT();
   return (
     <>
-      <Row label="Label">
+      <Row label={t("editor.label")}>
         <input
           type="text"
           value={content.label}
@@ -557,7 +568,7 @@ function StatEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Value">
+      <Row label={t("editor.value")}>
         <input
           type="text"
           value={content.value}
@@ -565,7 +576,7 @@ function StatEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Trend">
+      <Row label={t("editor.trend")}>
         <input
           type="text"
           value={content.trend}
@@ -573,7 +584,7 @@ function StatEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Direction">
+      <Row label={t("editor.direction")}>
         <div style={{ display: "flex", gap: 4 }}>
           {(["up", "down", "neutral"] as TrendDirection[]).map((d) => (
             <button
@@ -590,7 +601,7 @@ function StatEditor({
                 color: content.trendDirection === d ? "#f8fafc" : "rgba(255,255,255,0.4)",
               }}
             >
-              {d === "up" ? "↑ Up" : d === "down" ? "↓ Down" : "→ Flat"}
+              {d === "up" ? t("editor.up") : d === "down" ? t("editor.down") : t("editor.flat")}
             </button>
           ))}
         </div>
@@ -606,9 +617,10 @@ function FeatureEditor({
   content: FeatureContent;
   onChange: (c: FeatureContent) => void;
 }) {
+  const t = useT();
   return (
     <>
-      <Row label="Icon (emoji)">
+      <Row label={t("editor.iconEmoji")}>
         <input
           type="text"
           value={content.icon}
@@ -616,7 +628,7 @@ function FeatureEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Title">
+      <Row label={t("editor.title")}>
         <input
           type="text"
           value={content.title}
@@ -624,7 +636,7 @@ function FeatureEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Description">
+      <Row label={t("editor.description")}>
         <textarea
           value={content.description}
           onChange={(e) => onChange({ ...content, description: e.target.value })}
@@ -644,6 +656,7 @@ function TagCloudEditor({
   content: TagCloudContent;
   onChange: (c: TagCloudContent) => void;
 }) {
+  const t = useT();
   const addTag = () => onChange({ ...content, tags: [...content.tags, "Tag"] });
   const removeTag = (i: number) =>
     onChange({ ...content, tags: content.tags.filter((_, idx) => idx !== i) });
@@ -675,7 +688,7 @@ function TagCloudEditor({
         </div>
       ))}
       <button className="btn-ghost" style={{ fontSize: 12, marginTop: 4 }} onClick={addTag}>
-        + Add Tag
+        {t("editor.addTag")}
       </button>
     </>
   );
@@ -688,9 +701,10 @@ function CodeEditor({
   content: CodeContent;
   onChange: (c: CodeContent) => void;
 }) {
+  const t = useT();
   return (
     <>
-      <Row label="Language">
+      <Row label={t("editor.language")}>
         <select
           className="input-base"
           value={content.language}
@@ -703,7 +717,7 @@ function CodeEditor({
           ))}
         </select>
       </Row>
-      <Row label="Code">
+      <Row label={t("editor.code")}>
         <textarea
           value={content.code}
           onChange={(e) => onChange({ ...content, code: e.target.value })}
@@ -730,9 +744,10 @@ function BannerEditor({
   onChange: (c: BannerContent) => void;
   brand: BrandTokens;
 }) {
+  const t = useT();
   return (
     <>
-      <Row label="Title">
+      <Row label={t("editor.title")}>
         <input
           type="text"
           value={content.title}
@@ -740,7 +755,7 @@ function BannerEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Subtitle">
+      <Row label={t("editor.subtitle")}>
         <input
           type="text"
           value={content.subtitle}
@@ -748,7 +763,7 @@ function BannerEditor({
           className="input-base"
         />
       </Row>
-      <Row label="Gradient From">
+      <Row label={t("editor.gradientFrom")}>
         <div style={{ display: "flex", gap: 6 }}>
           <input
             type="color"
@@ -773,7 +788,7 @@ function BannerEditor({
           />
         </div>
       </Row>
-      <Row label="Gradient To">
+      <Row label={t("editor.gradientTo")}>
         <div style={{ display: "flex", gap: 6 }}>
           <input
             type="color"
@@ -798,7 +813,7 @@ function BannerEditor({
           />
         </div>
       </Row>
-      <Row label="Angle">
+      <Row label={t("editor.angle")}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <input
             type="range"
@@ -813,7 +828,7 @@ function BannerEditor({
           </span>
         </div>
       </Row>
-      <Row label="Text Align">
+      <Row label={t("editor.textAlign")}>
         <div style={{ display: "flex", gap: 4 }}>
           {(["left", "center", "right"] as TextAlign[]).map((a) => (
             <button
@@ -835,7 +850,7 @@ function BannerEditor({
           ))}
         </div>
       </Row>
-      <Row label="Logo Position">
+      <Row label={t("editor.logoPosition")}>
         <div style={{ display: "flex", gap: 4 }}>
           {(["left", "center", "right"] as const).map((pos) => (
             <button
@@ -858,7 +873,7 @@ function BannerEditor({
           ))}
         </div>
       </Row>
-      <Row label="Show Logo">
+      <Row label={t("editor.showLogo")}>
         <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
           <input
             type="checkbox"
@@ -867,7 +882,7 @@ function BannerEditor({
             style={{ accentColor: "#6366f1", width: 14, height: 14 }}
           />
           <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
-            {brand.logo ? "Display brand logo" : "No logo set — upload one in Brand panel"}
+            {brand.logo ? t("editor.displayBrandLogo") : t("editor.noLogoSet")}
           </span>
         </label>
       </Row>

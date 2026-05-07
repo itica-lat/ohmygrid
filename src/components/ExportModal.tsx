@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import type { EditorState, ExportTab } from "../types";
 import type { Action } from "../state/reducer";
 import { generateReactExport, generateHtmlExport } from "../utils/exportUtils";
+import { useT } from "../lib/i18n";
 
 interface Props {
   state: EditorState;
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function ExportModal({ state, dispatch }: Props) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
 
   const { exportTab } = state;
@@ -72,7 +74,9 @@ export function ExportModal({ state, dispatch }: Props) {
             gap: 12,
           }}
         >
-          <span style={{ fontWeight: 700, fontSize: 15, color: "#f8fafc" }}>Export Code</span>
+          <span style={{ fontWeight: 700, fontSize: 15, color: "#f8fafc" }}>
+            {t("export.title")}
+          </span>
           <div style={{ flex: 1 }} />
 
           {/* Tab switcher */}
@@ -92,17 +96,17 @@ export function ExportModal({ state, dispatch }: Props) {
                 onClick={() => setTab(tab)}
                 style={{ minWidth: 80 }}
               >
-                {tab === "react" ? "⚛ React TSX" : "🌐 HTML/CSS"}
+                {tab === "react" ? t("export.reactTab") : t("export.htmlTab")}
               </button>
             ))}
           </div>
 
           {/* Copy + Download */}
           <button className="btn-ghost" style={{ fontSize: 12 }} onClick={handleCopy}>
-            {copied ? "✓ Copied!" : "Copy"}
+            {copied ? t("export.copied") : t("export.copy")}
           </button>
           <button className="btn-primary" style={{ fontSize: 12 }} onClick={handleDownload}>
-            ↓ Download
+            {t("export.download")}
           </button>
 
           {/* Close */}
@@ -125,9 +129,7 @@ export function ExportModal({ state, dispatch }: Props) {
             color: "rgba(255,255,255,0.5)",
           }}
         >
-          {exportTab === "react"
-            ? "Self-contained TSX component with brand tokens as CSS variables. Paste into any React project."
-            : "Standalone HTML file with embedded styles. No dependencies required — open in any browser."}
+          {exportTab === "react" ? t("export.reactInfo") : t("export.htmlInfo")}
         </div>
 
         {/* Code */}

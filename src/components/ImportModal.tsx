@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import type { Action } from "../state/reducer";
 import { parseExportFile } from "../utils/importParser";
 import type { GridCell, GridConfig, BrandTokens } from "../types";
+import { useT } from "../lib/i18n";
 
 interface Props {
   currentBrand: BrandTokens;
@@ -20,6 +21,7 @@ export function ImportModal({ currentBrand, dispatch, onClose }: Props) {
   const [parsed, setParsed] = useState<ParsedPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = useT();
 
   async function handleFile(f: File) {
     setFile(f);
@@ -29,12 +31,12 @@ export function ImportModal({ currentBrand, dispatch, onClose }: Props) {
       const text = await f.text();
       const result = parseExportFile(text, f.name);
       if (!result) {
-        setError("Could not parse file. Make sure this is an ohmygrid export (.tsx or .html).");
+        setError(t("import.parseError"));
         return;
       }
       setParsed(result);
     } catch {
-      setError("An unexpected error occurred while parsing the file.");
+      setError(t("import.unexpectedError"));
     }
   }
 
@@ -92,7 +94,7 @@ export function ImportModal({ currentBrand, dispatch, onClose }: Props) {
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#f8fafc" }}>
-            Import Layout
+            {t("import.title")}
           </h2>
           <button
             onClick={onClose}
@@ -110,9 +112,11 @@ export function ImportModal({ currentBrand, dispatch, onClose }: Props) {
         </div>
 
         <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
-          Drop or select an exported{" "}
-          <strong style={{ color: "rgba(255,255,255,0.65)" }}>.tsx</strong> or{" "}
-          <strong style={{ color: "rgba(255,255,255,0.65)" }}>.html</strong> file from ohmygrid.
+          {t("import.instruction.before")}{" "}
+          <strong style={{ color: "rgba(255,255,255,0.65)" }}>.tsx</strong>{" "}
+          {t("import.instruction.or")}{" "}
+          <strong style={{ color: "rgba(255,255,255,0.65)" }}>.html</strong>{" "}
+          {t("import.instruction.after")}
         </p>
 
         {/* Drop zone */}
@@ -131,7 +135,7 @@ export function ImportModal({ currentBrand, dispatch, onClose }: Props) {
           }}
         >
           <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
-            {file ? file.name : "Click or drag & drop a file here"}
+            {file ? file.name : t("import.dropZone")}
           </p>
           <input
             ref={inputRef}
@@ -180,20 +184,20 @@ export function ImportModal({ currentBrand, dispatch, onClose }: Props) {
                 marginBottom: 8,
               }}
             >
-              Ready to import
+              {t("import.ready")}
             </p>
             <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-              <Stat label="Cells" value={String(parsed.cells.length)} />
-              <Stat label="Columns" value={String(parsed.gridConfig.columns)} />
-              <Stat label="Rows" value={String(parsed.gridConfig.rows)} />
-              {parsed.brand && <Stat label="Brand" value="included" />}
+              <Stat label={t("import.cells")} value={String(parsed.cells.length)} />
+              <Stat label={t("import.columns")} value={String(parsed.gridConfig.columns)} />
+              <Stat label={t("import.rows")} value={String(parsed.gridConfig.rows)} />
+              {parsed.brand && <Stat label={t("import.brand")} value={t("import.included")} />}
             </div>
           </div>
         )}
 
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
           <button className="btn-ghost" onClick={onClose}>
-            Cancel
+            {t("import.cancel")}
           </button>
           <button
             className="btn-primary"
@@ -201,7 +205,7 @@ export function ImportModal({ currentBrand, dispatch, onClose }: Props) {
             disabled={!parsed}
             style={{ opacity: parsed ? 1 : 0.4, cursor: parsed ? "pointer" : "not-allowed" }}
           >
-            Import Layout
+            {t("import.importLayout")}
           </button>
         </div>
       </div>

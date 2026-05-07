@@ -4,6 +4,7 @@ import type { GridCell, GridConfig, BrandTokens } from "../types";
 import { TEMPLATES } from "../utils/templates";
 import { loadSavedTemplates, deleteSavedTemplate } from "../utils/localStorage";
 import type { SavedTemplate } from "../types";
+import { useT } from "../lib/i18n";
 
 interface Props {
   currentBrand: BrandTokens;
@@ -15,6 +16,7 @@ interface Props {
 
 export function TemplatesModal({ currentBrand, dispatch, onClose }: Props) {
   const [saved, setSaved] = useState<SavedTemplate[]>(() => loadSavedTemplates());
+  const t = useT();
 
   // Reload saved templates when modal opens (in case TopBar saved one)
   useEffect(() => {
@@ -75,7 +77,9 @@ export function TemplatesModal({ currentBrand, dispatch, onClose }: Props) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#f8fafc" }}>Templates</h2>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#f8fafc" }}>
+            {t("templates.title")}
+          </h2>
           <button
             onClick={onClose}
             style={{
@@ -94,7 +98,7 @@ export function TemplatesModal({ currentBrand, dispatch, onClose }: Props) {
         {/* Saved templates */}
         {saved.length > 0 && (
           <section>
-            <p className="section-label">Saved Layouts</p>
+            <p className="section-label">{t("templates.savedLayouts")}</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {saved.map((t) => (
                 <TemplateRow
@@ -114,7 +118,7 @@ export function TemplatesModal({ currentBrand, dispatch, onClose }: Props) {
 
         {/* Built-in templates */}
         <section>
-          <p className="section-label">Built-in</p>
+          <p className="section-label">{t("templates.builtin")}</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {TEMPLATES.map((t) => (
               <TemplateRow
@@ -150,6 +154,7 @@ function TemplateRow({
   onLoad: () => void;
   onDelete?: () => void;
 }) {
+  const t = useT();
   return (
     <div
       style={{
@@ -195,7 +200,8 @@ function TemplateRow({
           {name}
         </p>
         <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
-          {columns}×{rows} · {cellCount} cell{cellCount !== 1 ? "s" : ""}
+          {columns}×{rows} · {cellCount}{" "}
+          {cellCount === 1 ? t("templates.cellSingular") : t("templates.cellPlural")}
           {createdAt && <> · {new Date(createdAt).toLocaleDateString()}</>}
         </p>
       </div>
@@ -206,7 +212,7 @@ function TemplateRow({
           style={{ height: 28, padding: "0 14px", fontSize: 12 }}
           onClick={onLoad}
         >
-          Load
+          {t("templates.load")}
         </button>
         {onDelete && (
           <button
@@ -222,7 +228,7 @@ function TemplateRow({
               cursor: "pointer",
             }}
           >
-            Delete
+            {t("templates.delete")}
           </button>
         )}
       </div>

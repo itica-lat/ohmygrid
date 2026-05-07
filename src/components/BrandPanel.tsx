@@ -3,6 +3,7 @@ import type { BrandTokens, BorderRadiusScale, SpacingScale } from "../types";
 import type { Action } from "../state/reducer";
 import { loadSavedBrands, saveBrand, deleteSavedBrand } from "../utils/localStorage";
 import type { SavedBrand } from "../types";
+import { useT } from "../lib/i18n";
 
 const FONT_OPTIONS = [
   { value: "system-ui", label: "System UI" },
@@ -67,6 +68,7 @@ function ColorRow({ label, value, onChange }: ColorRowProps) {
 }
 
 export function BrandPanel({ brand, dispatch }: Props) {
+  const t = useT();
   const set = (updates: Partial<BrandTokens>) => dispatch({ type: "SET_BRAND", brand: updates });
 
   // Brand presets
@@ -166,46 +168,48 @@ export function BrandPanel({ brand, dispatch }: Props) {
       }}
     >
       <div>
-        <p className="section-label">Brand Tokens</p>
+        <p className="section-label">{t("brand.brandTokens")}</p>
         <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
-          All changes update the canvas in real time.
+          {t("brand.realtimeHint")}
         </p>
       </div>
 
       {/* Colors */}
       <section>
-        <p className="section-label">Colors</p>
+        <p className="section-label">{t("brand.colors")}</p>
         <ColorRow
-          label="Primary"
+          label={t("brand.primary")}
           value={brand.colorPrimary}
           onChange={(v) => set({ colorPrimary: v })}
         />
         <ColorRow
-          label="Secondary"
+          label={t("brand.secondary")}
           value={brand.colorSecondary}
           onChange={(v) => set({ colorSecondary: v })}
         />
         <ColorRow
-          label="Accent"
+          label={t("brand.accent")}
           value={brand.colorAccent}
           onChange={(v) => set({ colorAccent: v })}
         />
         <ColorRow
-          label="Background"
+          label={t("brand.background")}
           value={brand.colorBackground}
           onChange={(v) => set({ colorBackground: v })}
         />
         <ColorRow
-          label="Surface"
+          label={t("brand.surface")}
           value={brand.colorSurface}
           onChange={(v) => set({ colorSurface: v })}
         />
-        <ColorRow label="Text" value={brand.colorText} onChange={(v) => set({ colorText: v })} />
+        <ColorRow
+          label={t("brand.text")}
+          value={brand.colorText}
+          onChange={(v) => set({ colorText: v })}
+        />
       </section>
-
-      {/* Brand Presets */}
       <section>
-        <p className="section-label">Brand Presets</p>
+        <p className="section-label">{t("brand.brandPresets")}</p>
         {savedBrands.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 10 }}>
             {savedBrands.map((b) => (
@@ -237,7 +241,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
                   style={{ fontSize: 11, padding: "3px 8px", height: 24 }}
                   onClick={() => handleLoadBrand(b)}
                 >
-                  Apply
+                  {t("brand.apply")}
                 </button>
                 <button
                   onClick={() => handleDeleteBrand(b.id)}
@@ -266,7 +270,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
               lineHeight: 1.5,
             }}
           >
-            No saved presets yet.
+            {t("brand.noSavedPresets")}
           </p>
         )}
         {showSaveBrandInput ? (
@@ -280,7 +284,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
                 if (e.key === "Enter") handleSaveBrand();
                 if (e.key === "Escape") setShowSaveBrandInput(false);
               }}
-              placeholder="Preset name…"
+              placeholder={t("brand.presetNamePlaceholder")}
               className="input-base"
               style={{ flex: 1, height: 28, padding: "0 8px", fontSize: 12 }}
             />
@@ -289,7 +293,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
               style={{ height: 28, padding: "0 10px", fontSize: 12 }}
               onClick={handleSaveBrand}
             >
-              Save
+              {t("brand.save")}
             </button>
             <button
               className="btn-ghost"
@@ -305,17 +309,17 @@ export function BrandPanel({ brand, dispatch }: Props) {
             style={{ fontSize: 12, height: 28, padding: "0 12px" }}
             onClick={() => setShowSaveBrandInput(true)}
           >
-            Save Current Brand
+            {t("brand.saveCurrentBrand")}
           </button>
         )}
       </section>
 
       {/* Typography */}
       <section>
-        <p className="section-label">Typography</p>
+        <p className="section-label">{t("brand.typography")}</p>
         <div style={{ marginBottom: 8 }}>
           <p style={{ margin: "0 0 4px", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-            Font Family
+            {t("brand.fontFamily")}
           </p>
           <select
             className="input-base"
@@ -332,7 +336,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
         <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
           <div style={{ flex: 1 }}>
             <p style={{ margin: "0 0 4px", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-              Base Size (px)
+              {t("brand.baseSizePx")}
             </p>
             <input
               type="number"
@@ -345,7 +349,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
           </div>
           <div style={{ flex: 1 }}>
             <p style={{ margin: "0 0 4px", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-              Type Ratio
+              {t("brand.typeRatio")}
             </p>
             <input
               type="number"
@@ -386,14 +390,14 @@ export function BrandPanel({ brand, dispatch }: Props) {
               fontWeight: 600,
             }}
           >
-            Heading Preview
+            {t("brand.headingPreview")}
           </p>
         </div>
 
         {/* Custom Google Fonts URL */}
         <div style={{ marginTop: 10 }}>
           <p style={{ margin: "0 0 4px", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-            Custom Google Font URL
+            {t("brand.customGoogleFontUrl")}
           </p>
           <input
             type="text"
@@ -417,14 +421,14 @@ export function BrandPanel({ brand, dispatch }: Props) {
               lineHeight: 1.5,
             }}
           >
-            Paste a Google Fonts CSS URL. The family name is auto-detected and applied.
+            {t("brand.googleFontHelp")}
           </p>
         </div>
       </section>
 
       {/* Border Radius */}
       <section>
-        <p className="section-label">Border Radius</p>
+        <p className="section-label">{t("brand.borderRadius")}</p>
         <div style={{ display: "flex", gap: 6 }}>
           {(["sharp", "soft", "pill"] as BorderRadiusScale[]).map((scale) => (
             <button
@@ -452,7 +456,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
 
       {/* Spacing */}
       <section>
-        <p className="section-label">Spacing Scale</p>
+        <p className="section-label">{t("brand.spacingScale")}</p>
         <div style={{ display: "flex", gap: 6 }}>
           {(["compact", "default", "relaxed"] as SpacingScale[]).map((scale) => (
             <button
@@ -479,7 +483,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
 
       {/* Logo */}
       <section>
-        <p className="section-label">Logo</p>
+        <p className="section-label">{t("brand.logo")}</p>
         {brand.logo ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
             <img
@@ -492,7 +496,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
               style={{ fontSize: 11 }}
               onClick={() => set({ logo: "" })}
             >
-              Remove
+              {t("brand.remove")}
             </button>
           </div>
         ) : null}
@@ -500,7 +504,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
           className="btn-ghost"
           style={{ cursor: "pointer", display: "inline-block", fontSize: 12 }}
         >
-          {brand.logo ? "Replace Logo" : "Upload Logo"}
+          {brand.logo ? t("brand.replaceLogo") : t("brand.uploadLogo")}
           <input
             type="file"
             accept="image/*"
@@ -512,7 +516,7 @@ export function BrandPanel({ brand, dispatch }: Props) {
 
       {/* Token table (raw values for devs) */}
       <section>
-        <p className="section-label">Raw CSS Variables</p>
+        <p className="section-label">{t("brand.rawCssVariables")}</p>
         <div className="code-block" style={{ fontSize: 10 }}>
           {`--color-primary: ${brand.colorPrimary};\n--color-secondary: ${brand.colorSecondary};\n--color-accent: ${brand.colorAccent};\n--color-bg: ${brand.colorBackground};\n--color-surface: ${brand.colorSurface};\n--color-text: ${brand.colorText};\n--font-family: ${brand.fontFamily};\n--font-base-size: ${brand.fontBaseSize}px;\n--font-ratio: ${brand.fontRatio};`}
         </div>

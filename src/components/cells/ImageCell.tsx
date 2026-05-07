@@ -1,4 +1,5 @@
 import type { ImageContent } from "../../types";
+import { useT } from "../../lib/i18n";
 
 interface Props {
   content: ImageContent;
@@ -6,6 +7,7 @@ interface Props {
 
 export function ImageCell({ content }: Props) {
   const { src, alt, fit, position } = content;
+  const t = useT();
   if (!src) {
     return (
       <div
@@ -20,7 +22,7 @@ export function ImageCell({ content }: Props) {
           fontFamily: "var(--font-family)",
         }}
       >
-        🖼 No image source
+        🖼 {t("image.noSource")}
       </div>
     );
   }
