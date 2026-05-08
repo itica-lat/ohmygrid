@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import type { GridCell, GridConfig, BrandTokens, GridMode } from "../types";
 import type { Action } from "../state/reducer";
 import { newId, createDefaultContent } from "../state/initialState";
@@ -10,6 +11,7 @@ import { FeatureCard } from "./cells/FeatureCard";
 import { TagCloud } from "./cells/TagCloud";
 import { CodeSnippet } from "./cells/CodeSnippet";
 import { BannerCell } from "./cells/BannerCell";
+import { SkeletonCell } from "./cells/SkeletonCell";
 
 interface Props {
   cells: GridCell[];
@@ -55,6 +57,23 @@ function isSlotOccupied(cells: GridCell[], col: number, row: number): boolean {
   return cells.some((cell) => cellOccupies(cell, col, row));
 }
 
+function isAreaFreeExcept(
+  cells: GridCell[],
+  excludeId: string,
+  colStart: number,
+  rowStart: number,
+  colSpan: number,
+  rowSpan: number,
+): boolean {
+  return isAreaFree(
+    cells.filter((c) => c.id !== excludeId),
+    colStart,
+    rowStart,
+    colSpan,
+    rowSpan,
+  );
+}
+
 function renderCellContent(cell: GridCell, logo?: string) {
   switch (cell.content.type) {
     case "text":
@@ -78,11 +97,13 @@ export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatc
   const { columns, rows, gap, padding } = gridConfig;
   const [drag, setDrag] = useState<DragState | null>(null);
   const [hoveredSlot, setHoveredSlot] = useState<{ col: number; row: number } | null>(null);
+  const [loadingCells, setLoadingCells] = useState<Set<string>>(new Set());
+  const [draggingCellId, setDraggingCellId] = useState<string | null>(null);
+  const cellRects = useRef<Map<string, DOMRect>>(new Map());
 
   const handleSlotMouseDown = useCallback(
     (col: number, row: number, e: React.MouseEvent) => {
       e.stopPropagation();
-      // Suppress native browser text/DOM selection so it doesn't race the drag gesture
       e.preventDefault();
       window.getSelection()?.removeAllRanges();
       if (isSlotOccupied(cells, col, row)) return;
@@ -108,10 +129,11 @@ export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatc
       const colSpan = Math.abs(drag.endCol - drag.startCol) + 1;
       const rowSpan = Math.abs(drag.endRow - drag.startRow) + 1;
       if (isAreaFree(cells, colStart, rowStart, colSpan, rowSpan)) {
+        const id = newId();
         dispatch({
           type: "ADD_CELL",
           cell: {
-            id: newId(),
+            id,
             colStart,
             rowStart,
             colSpan,
@@ -119,14 +141,23 @@ export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatc
             content: createDefaultContent("text"),
           },
         });
+        setLoadingCells((prev) => new Set(prev).add(id));
+        setTimeout(() => {
+          setLoadingCells((prev) => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+        }, 500);
       }
       setDrag(null);
     }
   }, [drag, cells, dispatch]);
 
   const handleCanvasClick = useCallback(() => {
+    if (draggingCellId) return;
     dispatch({ type: "SELECT_CELL", id: null });
-  }, [dispatch]);
+  }, [dispatch, draggingCellId]);
 
   // Determine drag selection range
   const dragColStart = drag ? Math.min(drag.startCol, drag.endCol) : 0;
@@ -184,36 +215,89 @@ export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatc
           }}
         >
           {/* Cells */}
-          {cells.map((cell) => {
-            const isSelected = cell.id === selectedCellId;
-            const cellBg = cell.customBackground ?? "rgba(255,255,255,0.06)";
-            const cellRadius = cell.customBorderRadius ?? "var(--radius-scale)";
-            const cellPad =
-              cell.customPadding ?? "calc(var(--font-base-size, 16px) * var(--spacing-scale, 1))";
-            return (
-              <div
-                key={cell.id}
-                className={`glass-card${isSelected ? " selected" : ""}`}
-                style={{
-                  gridColumn: `${cell.colStart} / span ${cell.colSpan}`,
-                  gridRow: `${cell.rowStart} / span ${cell.rowSpan}`,
-                  background: cellBg,
-                  borderRadius: cellRadius,
-                  padding: cellPad,
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  position: "relative",
-                  zIndex: 10,
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dispatch({ type: "SELECT_CELL", id: cell.id });
-                }}
-              >
-                {renderCellContent(cell, brand.logo)}
-              </div>
-            );
-          })}
+          <AnimatePresence mode="popLayout">
+            {cells.map((cell) => {
+              const isSelected = cell.id === selectedCellId;
+              const cellBg = cell.customBackground ?? "rgba(255,255,255,0.06)";
+              const cellRadius = cell.customBorderRadius ?? "var(--radius-scale)";
+              const cellPad =
+                cell.customPadding ?? "calc(var(--font-base-size, 16px) * var(--spacing-scale, 1))";
+              return (
+                <motion.div
+                  layout
+                  layoutId={cell.id}
+                  key={cell.id}
+                  initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -16 }}
+                  whileHover={{ scale: 1.02 }}
+                  drag={mode === "free" ? true : false}
+                  dragMomentum={false}
+                  dragElastic={0}
+                  onDragStart={() => {
+                    setDraggingCellId(cell.id);
+                    const el = document.getElementById(`cell-${cell.id}`);
+                    if (el) cellRects.current.set(cell.id, el.getBoundingClientRect());
+                  }}
+                  onDragEnd={(_, info) => {
+                    const rect = cellRects.current.get(cell.id);
+                    cellRects.current.delete(cell.id);
+                    setDraggingCellId(null);
+                    if (
+                      !rect ||
+                      (Math.abs(info.offset.x) < rect.width * 0.3 &&
+                        Math.abs(info.offset.y) < rect.height * 0.3)
+                    )
+                      return;
+                    const colDelta = Math.round(info.offset.x / rect.width);
+                    const rowDelta = Math.round(info.offset.y / rect.height);
+                    if (colDelta === 0 && rowDelta === 0) return;
+                    const newCol = Math.max(
+                      1,
+                      Math.min(columns - cell.colSpan + 1, cell.colStart + colDelta),
+                    );
+                    const newRow = Math.max(
+                      1,
+                      Math.min(rows - cell.rowSpan + 1, cell.rowStart + rowDelta),
+                    );
+                    if (newCol === cell.colStart && newRow === cell.rowStart) return;
+                    if (
+                      isAreaFreeExcept(cells, cell.id, newCol, newRow, cell.colSpan, cell.rowSpan)
+                    ) {
+                      dispatch({
+                        type: "UPDATE_CELL",
+                        id: cell.id,
+                        updates: { colStart: newCol, rowStart: newRow },
+                      });
+                    }
+                  }}
+                  className={`glass-card${isSelected ? " selected" : ""}`}
+                  style={{
+                    gridColumn: `${cell.colStart} / span ${cell.colSpan}`,
+                    gridRow: `${cell.rowStart} / span ${cell.rowSpan}`,
+                    background: cellBg,
+                    borderRadius: cellRadius,
+                    padding: cellPad,
+                    overflow: "hidden",
+                    cursor: mode === "free" ? "grab" : "pointer",
+                    position: "relative",
+                    zIndex: 10,
+                  }}
+                  onClick={(e) => {
+                    if (draggingCellId === cell.id) return;
+                    e.stopPropagation();
+                    dispatch({ type: "SELECT_CELL", id: cell.id });
+                  }}
+                >
+                  {loadingCells.has(cell.id) ? (
+                    <SkeletonCell />
+                  ) : (
+                    renderCellContent(cell, brand.logo)
+                  )}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
 
           {/* Free-mode drag overlay */}
           {mode === "free" && (
@@ -227,7 +311,6 @@ export function Canvas({ cells, gridConfig, brand, selectedCellId, mode, dispatc
                 gap,
                 pointerEvents: "none",
                 zIndex: 5,
-                // Disable text selection for the duration of a drag gesture
                 userSelect: drag ? "none" : undefined,
               }}
             >

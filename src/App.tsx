@@ -1,4 +1,5 @@
 import { useReducer, useEffect, useCallback, useState } from "react";
+import { MotionConfig } from "motion/react";
 import { reducer } from "./state/reducer";
 import { INITIAL_STATE } from "./state/initialState";
 import type { EditorState } from "./types";
@@ -45,78 +46,80 @@ function App() {
   const handleDispatch = useCallback(dispatch, [dispatch]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        overflow: "hidden",
-        background: "#0a0a0f",
-        color: "#f8fafc",
-      }}
-    >
-      {/* Top bar */}
-      <TopBar
-        mode={state.mode}
-        gridConfig={state.gridConfig}
-        brand={state.brand}
-        cells={state.cells}
-        cellCount={state.cells.length}
-        activeTemplateId={state.activeTemplateId}
-        onOpenImport={() => setIsImportOpen(true)}
-        onOpenTemplates={() => setIsTemplatesOpen(true)}
-        dispatch={handleDispatch}
-      />
-
-      {/* Main layout */}
-      <div style={{ flex: 1, display: "flex", overflow: "hidden", minHeight: 0 }}>
-        {/* Left sidebar — brand panel */}
-        <BrandPanel brand={state.brand} dispatch={handleDispatch} />
-
-        {/* Center — canvas */}
-        <Canvas
-          cells={state.cells}
+    <MotionConfig transition={{ ease: [0.17, 0.67, 0.83, 0.67], duration: 0.4 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          overflow: "hidden",
+          background: "#0a0a0f",
+          color: "#f8fafc",
+        }}
+      >
+        {/* Top bar */}
+        <TopBar
+          mode={state.mode}
           gridConfig={state.gridConfig}
           brand={state.brand}
-          selectedCellId={state.selectedCellId}
-          mode={state.mode}
+          cells={state.cells}
+          cellCount={state.cells.length}
+          activeTemplateId={state.activeTemplateId}
+          onOpenImport={() => setIsImportOpen(true)}
+          onOpenTemplates={() => setIsTemplatesOpen(true)}
           dispatch={handleDispatch}
         />
 
-        {/* Right sidebar — cell editor */}
-        <CellEditor
-          cell={selectedCell}
-          cells={state.cells}
-          gridConfig={state.gridConfig}
-          mode={state.mode}
-          brand={state.brand}
-          dispatch={handleDispatch}
-        />
+        {/* Main layout */}
+        <div style={{ flex: 1, display: "flex", overflow: "hidden", minHeight: 0 }}>
+          {/* Left sidebar — brand panel */}
+          <BrandPanel brand={state.brand} dispatch={handleDispatch} />
+
+          {/* Center — canvas */}
+          <Canvas
+            cells={state.cells}
+            gridConfig={state.gridConfig}
+            brand={state.brand}
+            selectedCellId={state.selectedCellId}
+            mode={state.mode}
+            dispatch={handleDispatch}
+          />
+
+          {/* Right sidebar — cell editor */}
+          <CellEditor
+            cell={selectedCell}
+            cells={state.cells}
+            gridConfig={state.gridConfig}
+            mode={state.mode}
+            brand={state.brand}
+            dispatch={handleDispatch}
+          />
+        </div>
+
+        {/* Export modal */}
+        {state.isExportModalOpen && <ExportModal state={state} dispatch={handleDispatch} />}
+
+        {/* Import modal */}
+        {isImportOpen && (
+          <ImportModal
+            currentBrand={state.brand}
+            dispatch={handleDispatch}
+            onClose={() => setIsImportOpen(false)}
+          />
+        )}
+
+        {/* Templates modal */}
+        {isTemplatesOpen && (
+          <TemplatesModal
+            currentBrand={state.brand}
+            currentGridConfig={state.gridConfig}
+            currentCells={state.cells}
+            dispatch={handleDispatch}
+            onClose={() => setIsTemplatesOpen(false)}
+          />
+        )}
       </div>
-
-      {/* Export modal */}
-      {state.isExportModalOpen && <ExportModal state={state} dispatch={handleDispatch} />}
-
-      {/* Import modal */}
-      {isImportOpen && (
-        <ImportModal
-          currentBrand={state.brand}
-          dispatch={handleDispatch}
-          onClose={() => setIsImportOpen(false)}
-        />
-      )}
-
-      {/* Templates modal */}
-      {isTemplatesOpen && (
-        <TemplatesModal
-          currentBrand={state.brand}
-          currentGridConfig={state.gridConfig}
-          currentCells={state.cells}
-          dispatch={handleDispatch}
-          onClose={() => setIsTemplatesOpen(false)}
-        />
-      )}
-    </div>
+    </MotionConfig>
   );
 }
 
