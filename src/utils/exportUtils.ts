@@ -54,6 +54,13 @@ function renderHtmlContent(content: CellContent): string {
     case "code":
       return `
     <pre style="margin:0;font-family:ui-monospace,Consolas,monospace;font-size:12px;overflow:auto;height:100%;color:rgba(255,255,255,0.85);line-height:1.6;"><code>${esc(content.code)}</code></pre>`;
+    case "banner":
+      return `
+    <div style="display:flex;flex-direction:column;gap:6px;height:100%;justify-content:center;align-items:${content.logoPosition};text-align:${content.textAlign};background:linear-gradient(${content.gradientAngle}deg,${content.gradientFrom},${content.gradientTo});padding:16px;border-radius:var(--radius-scale);">
+      ${content.showLogo ? `<span style="font-size:32px;margin-bottom:4px;">&#9830;</span>` : ""}
+      ${content.title ? `<h2 style="margin:0;font-size:calc(var(--font-base-size) * 1.3);font-weight:700;color:#fff;font-family:var(--font-family);">${esc(content.title)}</h2>` : ""}
+      ${content.subtitle ? `<p style="margin:0;font-size:calc(var(--font-base-size) * 0.85);color:rgba(255,255,255,0.85);font-family:var(--font-family);">${esc(content.subtitle)}</p>` : ""}
+    </div>`;
   }
 }
 
@@ -91,6 +98,13 @@ function renderJsxContent(content: CellContent): string {
       </div>`;
     case "code":
       return `<pre style={{ margin: 0, fontFamily: "ui-monospace,Consolas,monospace", fontSize: 12, overflow: "auto", height: "100%", color: "rgba(255,255,255,0.85)", lineHeight: 1.6 }}><code>${escJsx(content.code)}</code></pre>`;
+    case "banner":
+      return `
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, height: "100%", justifyContent: "center", alignItems: "${content.logoPosition}", textAlign: "${content.textAlign}", background: "linear-gradient(${content.gradientAngle}deg,${content.gradientFrom},${content.gradientTo})", padding: 16, borderRadius: "var(--radius-scale)" }}>
+        ${content.showLogo ? `<span style={{ fontSize: 32, marginBottom: 4 }}>&#9830;</span>` : ""}
+        ${content.title ? `<h2 style={{ margin: 0, fontSize: "calc(var(--font-base-size) * 1.3)", fontWeight: 700, color: "#fff", fontFamily: "var(--font-family)" }}>${escJsx(content.title)}</h2>` : ""}
+        ${content.subtitle ? `<p style={{ margin: 0, fontSize: "calc(var(--font-base-size) * 0.85)", color: "rgba(255,255,255,0.85)", fontFamily: "var(--font-family)" }}>${escJsx(content.subtitle)}</p>` : ""}
+      </div>`;
   }
 }
 
